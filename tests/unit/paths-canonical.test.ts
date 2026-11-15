@@ -2,7 +2,7 @@
 // names (a link, a Windows 8.3 short name, another case) is one folder. Everything
 // happens in a temp folder.
 import { spawnSync } from 'child_process'
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync } from 'fs'
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
@@ -101,8 +101,15 @@ describe('samePath', () => {
   it('compares texts first, case-insensitively on Windows', () => {
     const dir = folder()
     expect(samePath(dir, dir)).toBe(true)
-    expect(samePath(dir, dir.toUpperCase())).toBe(WINDOWS)
+    // Names that do not exist: only the text decides.
+    expect(samePath(join(dir, 'missing', 'A'), join(dir, 'MISSING', 'a'))).toBe(WINDOWS)
     expect(samePath(dir, folder())).toBe(false)
+  })
+
+  it('knows an existing folder in another case where the file system ignores case', () => {
+    // Windows, and macOS by default: its canonical form has the case on disk.
+    const dir = folder()
+    expect(samePath(dir, dir.toUpperCase())).toBe(existsSync(dir.toUpperCase()))
   })
 
   it('knows a folder through a link', () => {

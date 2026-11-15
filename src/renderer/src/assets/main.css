@@ -976,10 +976,17 @@ textarea.input {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* In a narrow window the path and this label shorten, never the buttons after them. */
 .diff-context {
+  min-width: 0;
+  overflow: hidden;
   color: var(--muted);
   font-size: 12px;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+.diff-header .segmented {
+  flex: none;
 }
 .segmented {
   display: flex;

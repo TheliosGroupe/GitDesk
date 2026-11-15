@@ -89,6 +89,13 @@ function linkFolder(target: string, path: string): void {
   symlinkSync(target, path, process.platform === 'win32' ? 'junction' : 'dir')
 }
 
+/**
+ * Ignores a node_modules link made by linkFolder. Without a trailing slash: on macOS and
+ * Linux the link is a symlink, which git does not treat as a folder, so `node_modules/`
+ * would leave it untracked (a change).
+ */
+const NODE_MODULES_IGNORED = 'node_modules\n'
+
 describe('log parsers (PERF-05)', () => {
   it('keeps commits whole when messages and names hold separator bytes', async () => {
     const dir = newRepo()
@@ -534,7 +541,7 @@ describe('undo (PERF-13, PERF-53)', () => {
 describe('worktree removal (PERF-02)', () => {
   it('keeps the targets of folder links inside the removed worktree', async () => {
     const dir = newRepo()
-    writeFileSync(join(dir, '.gitignore'), 'node_modules/\n')
+    writeFileSync(join(dir, '.gitignore'), NODE_MODULES_IGNORED)
     sh(dir, 'add', '.gitignore')
     sh(dir, 'commit', '-q', '-m', 'ignore')
     const wt = join(root, `wt${counter++}`)
@@ -577,7 +584,7 @@ describe('worktree removal (PERF-02)', () => {
 
   it('refuses a locked worktree before touching its links', async () => {
     const dir = newRepo()
-    writeFileSync(join(dir, '.gitignore'), 'node_modules/\n')
+    writeFileSync(join(dir, '.gitignore'), NODE_MODULES_IGNORED)
     sh(dir, 'add', '.gitignore')
     sh(dir, 'commit', '-q', '-m', 'ignore')
     const wt = join(root, `wt${counter++}`)

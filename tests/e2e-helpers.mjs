@@ -49,6 +49,9 @@ export async function launch(userData, env = {}) {
   delete fullEnv.ELECTRON_RUN_AS_NODE
   const app = await electron.launch({ executablePath: electronPath, args: [root], env: fullEnv })
   const page = await app.firstWindow()
+  // The screen of a CI runner (1024 × 768): a local run lays the app out as CI does, and a
+  // control pushed out of reach by a narrow window fails here too.
+  await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.setSize(1024, 768))
   const pageErrors = []
   page.on('pageerror', (e) => pageErrors.push(`pageerror: ${e.message}`))
   page.on('console', (msg) => {

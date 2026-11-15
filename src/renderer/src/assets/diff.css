@@ -138,13 +138,16 @@
   display: flex;
   flex: 1;
   flex-direction: column;
+  min-width: 0;
   min-height: 0;
 }
+/* Wraps in a narrow window: a button pushed past the edge would sit under the right panel. */
 .conflict-toolbar {
   display: flex;
   flex: none;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px 6px;
   padding: 6px 8px 6px 12px;
   background: var(--panel-2);
   border-bottom: 1px solid var(--border);
@@ -199,8 +202,9 @@
   position: sticky;
   left: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px 6px;
   padding: 3px 8px 3px 12px;
   background: var(--panel-2);
   font-family: 'Segoe UI', system-ui, sans-serif;

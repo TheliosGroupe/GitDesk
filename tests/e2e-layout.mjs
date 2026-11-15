@@ -88,6 +88,12 @@ try {
   step('repository opens with the default layout')
 
   // --- graph columns ----------------------------------------------------------------------------
+  // In focus mode (no side panels): in a window the size of a CI runner's screen the graph is
+  // otherwise too narrow for every column, and they step aside (see "narrow window" below).
+  // The mode is kept across the relaunch, and left before the sidebar steps.
+  await page.getByRole('button', { name: 'Focus mode' }).click()
+  await page.locator('.repo-view.sidebar-hidden.right-hidden').waitFor()
+  await th('sha').waitFor()
   await openColumnMenu()
   assert.equal(await columnItem('Commit message').isDisabled(), true)
   assert.equal(await columnItem('SHA').getAttribute('aria-checked'), 'true')
@@ -166,6 +172,7 @@ try {
   session = await launch(userData)
   ;({ page, shot, blur, section } = session)
   await page.locator('.graph-row.wip').waitFor()
+  await page.locator('.repo-view.sidebar-hidden.right-hidden').waitFor() // focus mode kept
   assert.equal(await widthOf(th('author')), authorBefore + 60)
   assert.equal(await th('sha').count(), 0)
   await shot('l03-columns-light')
@@ -175,6 +182,8 @@ try {
   assert.equal(await widthOf(th('author')), authorBefore)
   assert.equal(await widthOf(th('refs')), 160)
   step('column widths and hidden columns survive a relaunch; "Reset columns" restores them')
+  await page.getByRole('button', { name: 'Focus mode' }).click()
+  await page.locator('.repo-view.sidebar-open.right-open').waitFor()
 
   // --- sidebar ------------------------------------------------------------------------------------
   const sidebar = page.locator('.sidebar')
