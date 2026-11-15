@@ -273,4 +273,8 @@ if (!app.requestSingleInstanceLock()) {
     unwatchAll()
     if (process.platform !== 'darwin') app.quit()
   })
+
+  // The layout and the Home page are kept in localStorage, which Chromium writes to disk a
+  // moment later: without this, a change made just before quitting could be lost.
+  app.on('before-quit', () => session.defaultSession.flushStorageData())
 }

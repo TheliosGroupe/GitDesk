@@ -213,6 +213,8 @@ writeFileSync(
 const appEnv = { GITDESK_API_OVERRIDES: JSON.stringify({ 'gitlab.fake.test': `${fake}/gl` }) }
 const first = await launch(userData, appEnv)
 let app = first.app
+/** Screenshot of the app running now (after a restart, not of the closed one). */
+let shotNow = first.shot
 const {
   page,
   pageErrors,
@@ -829,11 +831,15 @@ try {
   await page.keyboard.press('Control+Shift+3')
   await until(() => isSelected('Agents'), 'Agents')
   await until(() => savedState().openTabs.join() === [hosted, repo].join(), 'order saved')
+  // Home (no repository) saved as the active tab before quitting: the renderer saves it
+  // over IPC, which a quit could otherwise overtake.
+  await until(() => savedState().activeTab === null, 'Home saved as the active tab')
   assert.deepEqual(pageErrors, [])
   await app.close()
 
   const second = await launch(userData, appEnv)
   app = second.app
+  shotNow = second.shot
   await second.page.locator('.tabbar-tabs [role=tab]').nth(1).waitFor()
   assert.deepEqual(await second.repoTabs(), ['app', 'sample'])
   const tab2 = (name) => second.page.getByRole('tab', { name })
@@ -903,6 +909,7 @@ try {
   )
   const third = await launch(scaleData)
   app = third.app
+  shotNow = third.shot
   const p3 = third.page
   const shown3 = (locator) => locator.filter({ visible: true })
   const unstaged3 = shown3(third.section('Unstaged files'))
@@ -1032,7 +1039,7 @@ try {
 
   console.log(`\nAll feature checks passed. Screenshots: ${results}`)
 } catch (e) {
-  await shot('features-failure').catch(() => {})
+  await shotNow('features-failure').catch(() => {})
   throw e
 } finally {
   await app.close()
