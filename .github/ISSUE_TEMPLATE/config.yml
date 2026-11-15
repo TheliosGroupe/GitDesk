@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/TheliosGroupe/GitDesk/security/advisories/new
+    about: Please report vulnerabilities privately through a GitHub Security Advisory, not in a public issue (see SECURITY.md).
+  - name: Installing GitDesk or opening it the first time
+    url: https://github.com/TheliosGroupe/GitDesk#install
+    about: Which file to download, and how to get past the warnings on an unsigned build (Windows SmartScreen, macOS Gatekeeper).

@@ -1,0 +1,278 @@
+/* Diff view extras: syntax colors, line selection, conflict resolution. */
+
+/* ---------- syntax colors (GitHub-like) ---------- */
+:root {
+  --syn-keyword: #ff7b72;
+  --syn-string: #a5d6ff;
+  --syn-comment: #8b949e;
+  --syn-number: #79c0ff;
+  --syn-title: #d2a8ff;
+  --syn-type: #ffa657;
+  --syn-attr: #79c0ff;
+  --syn-meta: #79c0ff;
+  --syn-builtin: #ffa657;
+  --syn-tag: #7ee787;
+  --syn-variable: #ffa657;
+  --syn-section: #79c0ff;
+}
+:root[data-theme='light'] {
+  --syn-keyword: #cf222e;
+  --syn-string: #0a3069;
+  --syn-comment: #6e7781;
+  --syn-number: #0550ae;
+  --syn-title: #8250df;
+  --syn-type: #953800;
+  --syn-attr: #0550ae;
+  --syn-meta: #0550ae;
+  --syn-builtin: #953800;
+  --syn-tag: #116329;
+  --syn-variable: #953800;
+  --syn-section: #0550ae;
+}
+
+.hljs-keyword,
+.hljs-doctag,
+.hljs-template-tag,
+.hljs-meta .hljs-keyword {
+  color: var(--syn-keyword);
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-meta .hljs-string,
+.hljs-char.escape_ {
+  color: var(--syn-string);
+}
+.hljs-comment,
+.hljs-quote {
+  color: var(--syn-comment);
+  font-style: italic;
+}
+.hljs-number,
+.hljs-literal,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+  color: var(--syn-number);
+}
+.hljs-title,
+.hljs-title.function_,
+.hljs-section {
+  color: var(--syn-title);
+}
+.hljs-section {
+  font-weight: 600;
+}
+.hljs-type,
+.hljs-title.class_,
+.hljs-title.class_.inherited__ {
+  color: var(--syn-type);
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-property,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id,
+.hljs-selector-pseudo {
+  color: var(--syn-attr);
+}
+.hljs-meta {
+  color: var(--syn-meta);
+}
+.hljs-built_in {
+  color: var(--syn-builtin);
+}
+.hljs-name,
+.hljs-tag,
+.hljs-selector-tag {
+  color: var(--syn-tag);
+}
+.hljs-variable,
+.hljs-template-variable {
+  color: var(--syn-variable);
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 600;
+}
+
+/* ---------- line selection ---------- */
+.diff-lines .ln.pick {
+  cursor: pointer;
+}
+.diff-lines .ln.pick:hover {
+  color: var(--text);
+  box-shadow: inset 0 0 0 999px var(--select);
+}
+.diff-lines .ln.selected {
+  color: var(--text);
+  box-shadow: inset 0 0 0 999px var(--select);
+}
+.diff-lines.unified .ln.selected:nth-child(3n + 1),
+.diff-lines.split .ln.selected {
+  box-shadow:
+    inset 3px 0 0 var(--accent),
+    inset 0 0 0 999px var(--select);
+}
+.diff-lines .code.selected {
+  box-shadow: inset 0 0 0 999px var(--select);
+}
+.diff-lines.pickable .ln.pick:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.hunk-picked {
+  color: var(--text-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.icon-btn.small {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---------- conflicts ---------- */
+.conflict-view {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.conflict-toolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--border);
+}
+.conflict-count {
+  color: var(--text-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.conflict-hint {
+  flex: none;
+  padding: 4px 12px;
+  color: var(--muted);
+  font-size: 11.5px;
+  border-bottom: 1px solid var(--border);
+}
+.conflict-body {
+  padding-bottom: 24px;
+}
+.conflict-lines .code {
+  padding-left: 12px;
+  min-height: 20px;
+}
+.conflict-lines.context {
+  color: var(--text-2);
+}
+.conflict-expand {
+  display: block;
+  width: 100%;
+  padding: 2px 12px;
+  border: none;
+  border-top: 1px dashed var(--border);
+  border-bottom: 1px dashed var(--border);
+  background: var(--bg-deep);
+  color: var(--muted);
+  font: inherit;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.conflict-expand:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+.conflict-block {
+  margin: 6px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.conflict-bar {
+  position: sticky;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 12px;
+  background: var(--panel-2);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.conflict-title {
+  color: var(--warn);
+  font-weight: 600;
+  font-size: 12px;
+}
+.conflict-block.resolved .conflict-title {
+  color: var(--ok);
+}
+.conflict-done {
+  color: var(--ok);
+}
+.conflict-side {
+  border-left: 3px solid var(--border);
+}
+.conflict-side.current {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.conflict-side.incoming {
+  border-left-color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
+}
+.conflict-side.base {
+  border-left-color: var(--muted);
+  background: var(--bg-deep);
+}
+.conflict-side.dropped {
+  opacity: 0.4;
+}
+.conflict-label {
+  padding: 1px 12px;
+  color: var(--muted);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 11.5px;
+}
+.conflict-side.used .conflict-label {
+  color: var(--ok);
+}
+
+/* ---------- long diffs: lines drawn in chunks (DiffView LazyRows) ---------- */
+/* Each chunk is its own grid; the gutters get one fixed width (--ln-w) so chunks line up. */
+.diff-lines.chunked.unified,
+.diff-lines.chunked.split {
+  display: flex;
+  flex-direction: column;
+}
+.diff-lines.chunked.unified > .diff-chunk {
+  display: grid;
+  grid-template-columns: var(--ln-w) var(--ln-w) minmax(0, 1fr);
+}
+.diff-lines.chunked.split > .diff-chunk {
+  display: grid;
+  grid-template-columns: var(--ln-w) minmax(0, 1fr) var(--ln-w) minmax(0, 1fr);
+}
+
+/* ---------- hidden characters: .hidden-char markers are in main.css (toasts use them too) ---------- */
+.hidden-chars-banner {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--warn) 12%, transparent);
+  color: var(--text);
+  font-size: 12px;
+}
+.hidden-chars-banner > svg {
+  flex: none;
+  color: var(--warn);
+}

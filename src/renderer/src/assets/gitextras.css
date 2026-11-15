@@ -1,0 +1,416 @@
+/* Compare, line history, Gitflow, conflict warnings.
+   Colors come only from the variables in main.css :root (themes redefine them). */
+
+/* ---------- compare ---------- */
+.compare-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.cmp-header {
+  gap: 6px;
+}
+.input.cmp-ref {
+  width: 200px;
+  min-width: 90px;
+  flex: 0 1 200px;
+  height: 28px;
+  padding: 3px 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.segmented.cmp-dots button {
+  width: auto;
+  padding: 0 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.cmp-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.cmp-side {
+  flex: 0 0 340px;
+  max-width: 45%;
+  min-width: 220px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+.cmp-summary {
+  padding: 8px 12px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.cmp-section + .cmp-section {
+  border-top: 1px solid var(--border);
+}
+.cmp-section-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 12px;
+  background: var(--panel);
+  color: var(--text-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cmp-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cmp-empty {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.cmp-commit,
+.cmp-file {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cmp-commit {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  row-gap: 1px;
+}
+.cmp-file {
+  grid-template-columns: auto minmax(0, 1fr);
+  height: 26px;
+}
+.cmp-commit:hover,
+.cmp-file:hover {
+  background: var(--row-hover);
+}
+.cmp-file.selected {
+  background: var(--select);
+}
+.cmp-commit:focus-visible,
+.cmp-file:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+.cmp-subject,
+.cmp-meta,
+.cmp-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cmp-meta {
+  grid-column: 1;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.cmp-sha {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.cmp-path {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.cmp-diff {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.cmp-diff > .diff-view {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+/* ---------- line history ---------- */
+.line-history {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.lh-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+}
+.lh-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.lh-help {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.lh-entry {
+  border-top: 1px solid var(--border);
+}
+.lh-commit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 160px) 100px 64px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 30px;
+  padding: 0 12px;
+  border: none;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.lh-commit:hover {
+  background: var(--panel-2);
+}
+.lh-commit:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+.lh-subject,
+.lh-author,
+.lh-date {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lh-subject {
+  font-weight: 600;
+}
+.lh-author,
+.lh-date {
+  color: var(--text-2);
+}
+.lh-sha {
+  color: var(--muted);
+  font-size: 12px;
+}
+.lh-note {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+.lh-diff.diff-body {
+  flex: none;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+.lh-diff .hunk:last-child {
+  border-bottom: none;
+}
+
+/* ---------- blame line selection ---------- */
+.bl-select-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 3px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 12px;
+}
+.bl-select-bar .muted {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bl-ln.pick {
+  cursor: pointer;
+}
+.bl-ln.pick:hover {
+  color: var(--text);
+}
+.bl-row.line-sel,
+.bl-row.line-sel.odd,
+.bl-row.line-sel.hover {
+  background: var(--select);
+}
+.bl-row.line-sel .bl-ln {
+  background: color-mix(in srgb, var(--accent) 35%, var(--bg));
+  color: var(--text);
+}
+
+/* ---------- gitflow ---------- */
+.gf-tool > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.gf-caret {
+  opacity: 0.7;
+}
+.gf-form .modal-message {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+}
+.gf-grid {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+}
+.gf-grid label {
+  color: var(--text-2);
+  font-size: 12px;
+}
+.gf-preview {
+  margin-top: 6px;
+  font-size: 12px;
+}
+.gf-gap {
+  margin-top: 12px;
+}
+.gf-steps {
+  margin: 0 0 4px;
+  padding-left: 20px;
+  color: var(--text-2);
+  line-height: 1.7;
+  font-size: 12.5px;
+}
+.gf-form .checkbox {
+  display: flex;
+}
+.gf-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ---------- conflict warnings ---------- */
+.cw-root {
+  position: relative;
+}
+.tool.cw-tool {
+  color: var(--warn);
+}
+.tool.cw-tool.bad {
+  color: var(--bad);
+}
+.cw-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  width: 420px;
+  max-width: calc(100vw - 24px);
+  max-height: min(520px, calc(100vh - 120px));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: var(--shadow-md);
+}
+.cw-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 10px 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.cw-head > div {
+  flex: 1;
+  min-width: 0;
+}
+.cw-sub {
+  margin-top: 2px;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.cw-list {
+  margin: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.cw-item {
+  padding: 6px 12px;
+}
+.cw-item + .cw-item {
+  border-top: 1px solid var(--border);
+}
+.cw-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cw-branch {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.cw-status {
+  padding: 1px 7px;
+  border: 1px solid var(--warn-border);
+  border-radius: 9px;
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.cw-status.conflict {
+  border-color: var(--bad-border);
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+.cw-meta {
+  margin: 2px 0 4px 19px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+}
+.cw-files {
+  margin: 0 0 0 19px;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+.cw-files li {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cw-files li.conflicted {
+  color: var(--bad);
+}
+.cw-files li.conflicted::after {
+  content: ' · conflict';
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: var(--muted);
+}

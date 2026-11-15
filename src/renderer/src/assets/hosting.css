@@ -1,0 +1,310 @@
+/* Hosting providers, Launchpad, issues, pull request creation, integrations. Variables only (main.css themes). */
+
+/* ---------- provider marks ---------- */
+.provider-badge {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--on-lane);
+  background: var(--muted);
+  user-select: none;
+}
+.provider-github {
+  background: var(--text-2);
+  color: var(--bg);
+}
+.provider-gitlab {
+  background: var(--hue-1);
+}
+.provider-bitbucket {
+  background: var(--hue-0);
+}
+.provider-azure {
+  background: var(--hue-5);
+}
+.provider-jira {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.provider-linear {
+  background: var(--hue-3);
+}
+
+/* ---------- Launchpad ---------- */
+.launchpad {
+  height: 100%;
+  overflow: auto;
+  padding: 24px 32px 40px;
+}
+.launchpad .dash-header {
+  flex-wrap: wrap;
+}
+.lp-select {
+  width: auto;
+  max-width: 180px;
+}
+.lp-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: var(--warn-bg);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lp-error.bad {
+  background: var(--bad-bg);
+}
+.lp-group {
+  margin-bottom: 24px;
+}
+.lp-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.lp-list {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.lp-empty {
+  padding: 10px 2px;
+  font-size: 12px;
+}
+.lp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.lp-row:last-child {
+  border-bottom: none;
+}
+.lp-row:hover {
+  background: var(--row-hover);
+}
+.lp-avatar-placeholder {
+  width: 22px;
+  flex: none;
+}
+.lp-main {
+  flex: 1;
+  min-width: 0;
+}
+.lp-title {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+}
+.lp-key {
+  flex: none;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 18px;
+}
+.lp-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.lp-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 2px;
+  color: var(--text-2);
+  font-size: 11px;
+}
+.lp-repo {
+  font-weight: 600;
+}
+.lp-branch {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--mono);
+}
+.lp-state {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+.lp-review.ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.lp-review.bad {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+.lp-review {
+  gap: 3px;
+}
+.lp-ci {
+  display: inline-flex;
+}
+.lp-ci.ok {
+  color: var(--ok);
+}
+.lp-ci.bad {
+  color: var(--bad);
+}
+.lp-ci.warn {
+  color: var(--warn);
+}
+.lp-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- issues (sidebar section) ---------- */
+.issue-item .provider-badge {
+  margin-left: auto;
+}
+.issue-error {
+  padding: 2px 12px 4px;
+  color: var(--warn);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- create pull request ---------- */
+.pr-create-branches {
+  align-items: flex-end;
+}
+.pr-create-branches .field {
+  flex: 1;
+  min-width: 0;
+}
+/* In a column, `.field-row .input { flex: 1 }` would squash the select below its height. */
+.pr-create-branches .field .input {
+  flex: none;
+  height: 30px;
+}
+.pr-create-arrow {
+  margin-bottom: 22px;
+  color: var(--muted);
+}
+.pr-create-head {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+  background: var(--bg-deep);
+}
+.pr-create-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pr-create-title-row > label {
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+.pr-create-body {
+  min-height: 140px;
+  font-family: inherit;
+}
+.pr-create-warning {
+  display: block;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--warn-border);
+  border-radius: 5px;
+  background: var(--warn-bg);
+}
+
+/* ---------- integrations settings ---------- */
+.integrations .spacer {
+  flex: 1;
+}
+.integration-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel-2);
+}
+.integration-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.integration-where {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.integration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.integration-form > label {
+  color: var(--text-2);
+  font-size: 12px;
+}
+.integration-help {
+  margin-bottom: 4px;
+}
+
+/* ---------- dashboard: workspaces, worktree cards ---------- */
+.workspace-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 12px;
+}
+.workspace-picker select.input {
+  max-width: 220px;
+}
+.card-worktree {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+.clone-tabs {
+  flex-shrink: 0;
+}
+.org-clone-failed {
+  max-height: 160px;
+  margin: 4px 0 0;
+  padding-left: 18px;
+  overflow: auto;
+  color: var(--text-2);
+  font-size: 12px;
+  line-height: 1.5;
+}

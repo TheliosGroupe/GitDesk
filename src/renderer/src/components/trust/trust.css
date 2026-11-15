@@ -1,0 +1,37 @@
+/* Repository trust: the banner in the repository view and the dashboard card badge. */
+.trust-banner {
+  flex: none;
+}
+.trust-banner.blocked > svg {
+  color: var(--bad);
+}
+.trust-banner-body {
+  min-width: 0;
+}
+.trust-findings {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.trust-findings li {
+  margin: 2px 0;
+}
+.trust-findings code {
+  margin-left: 4px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  word-break: break-all;
+}
+/* The repository could not load (blocked): the banner sits above the message. */
+.repo-view.loading:has(> .trust-banner) {
+  flex-direction: column;
+}
+.trust-badge {
+  gap: 3px;
+  flex: none;
+  color: var(--warn);
+  background: var(--warn-bg);
+}
+.trust-badge.blocked {
+  color: var(--bad);
+}

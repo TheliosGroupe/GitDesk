@@ -1,0 +1,302 @@
+/* Built-in terminal, worktrees section and agent sessions. Colors come from main.css variables. */
+
+/* ---------- terminal panel ---------- */
+.terminal-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+  max-height: 100%;
+  background: var(--bg);
+}
+.terminal-splitter {
+  position: absolute;
+  top: -3px;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 6px;
+  cursor: row-resize;
+}
+.terminal-splitter:hover,
+body.terminal-resizing .terminal-splitter {
+  background: var(--accent);
+  opacity: 0.5;
+}
+body.terminal-resizing {
+  cursor: row-resize;
+  user-select: none;
+}
+.terminal-tabs {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  padding: 0 6px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+.terminal-tabs-spacer {
+  flex: 1;
+}
+.terminal-tab {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  max-width: 220px;
+  height: 26px;
+  padding: 0 4px 0 10px;
+  border-radius: 4px;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+}
+.terminal-tab:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.terminal-tab.active {
+  background: var(--panel-2);
+  color: var(--text);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.terminal-tab.exited .terminal-tab-title {
+  color: var(--muted);
+  font-style: italic;
+}
+.terminal-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.terminal-tab .terminal-tab-close {
+  width: 18px;
+  height: 18px;
+  opacity: 0;
+}
+.terminal-tab:hover .terminal-tab-close,
+.terminal-tab.active .terminal-tab-close,
+.terminal-tab .terminal-tab-close:focus-visible {
+  opacity: 1;
+}
+.terminal-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.xterm-host {
+  position: absolute;
+  inset: 4px 0 0 8px;
+}
+.xterm-host[hidden] {
+  display: none;
+}
+.xterm-host .xterm {
+  height: 100%;
+}
+.xterm-host .xterm-viewport {
+  background-color: var(--bg) !important;
+}
+.xterm-host .xterm-viewport::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+}
+.terminal-empty {
+  display: grid;
+  height: 100%;
+  place-items: center;
+}
+
+/* ---------- worktrees (sidebar section) ---------- */
+.wt-item .wt-path {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wt-item.prunable .sb-name {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.badge.warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.badge.ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.badge.bad {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+.badge.info {
+  background: var(--info-bg);
+  color: var(--accent);
+}
+.wt-actions {
+  display: flex;
+  gap: 4px;
+  padding: 4px 10px 6px 26px;
+}
+.wt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wt-form .segmented-choice {
+  display: flex;
+  gap: 16px;
+}
+.wt-form .segmented-choice label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.wt-form .modal-label {
+  margin-bottom: 4px;
+}
+.wt-form .hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+.wt-form .warning {
+  padding: 8px 10px;
+  border: 1px solid var(--warn-border);
+  border-radius: 5px;
+  background: var(--warn-bg);
+  color: var(--text);
+  font-size: 12px;
+}
+.wt-form textarea.input {
+  height: auto;
+  min-height: 110px;
+  padding: 8px;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+/* ---------- agents (home tab) ---------- */
+.agents-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.agents-view .dashboard {
+  flex: 1 1 0;
+  min-height: 0;
+}
+.agents-intro {
+  max-width: 720px;
+  margin: -12px 0 20px;
+  color: var(--muted);
+}
+.agent-card {
+  cursor: default;
+}
+.agent-card.selected {
+  border-color: var(--accent);
+}
+.agent-card .card-top {
+  justify-content: space-between;
+}
+.agent-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.agent-name svg {
+  color: var(--accent);
+}
+.agent-task {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text);
+  white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+.agent-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.agent-meta .mono {
+  font-family: var(--mono);
+}
+.agent-last {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.agent-terminal {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  height: 42%;
+  min-height: 180px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.agent-terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 6px 0 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-2);
+  font-size: 12px;
+}
+.agent-terminal-header .grow {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-select {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.agent-select-status {
+  color: var(--muted);
+  font-size: 12px;
+}
+.agent-settings-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  align-items: center;
+  gap: 4px 10px;
+  margin-bottom: 6px;
+}
+.agent-settings-row .agent-found {
+  grid-column: 2;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-settings-row .agent-found.missing {
+  color: var(--warn);
+}

@@ -1,0 +1,857 @@
+/* Repository view additions: resizable panels, commit search, branch drag and drop, shortcuts help.
+   Colors come only from the theme variables in main.css. */
+
+/* ---------- resizable panels ---------- */
+/* .repo-view.resizable beats main.css's .repo-view; widths are set inline by RepoView.
+   The details panel never squeezes the center below 400px (narrow windows). */
+.repo-view.resizable {
+  --rail-w: 40px;
+  --sb-col: clamp(160px, var(--sidebar-w, 240px), 40vw);
+  --rt-col: clamp(280px, var(--right-w, 380px), max(280px, calc(100vw - var(--sb-col) - 400px)));
+  grid-template-columns: var(--sb-col) minmax(0, 1fr) var(--rt-col);
+}
+/* Collapsed panels ignore their saved width (it comes back when they expand). */
+.repo-view.resizable.sidebar-rail {
+  --sb-col: var(--rail-w);
+}
+.repo-view.resizable.right-rail {
+  --rt-col: var(--rail-w);
+}
+.repo-view.resizable.sidebar-hidden {
+  --sb-col: 0px;
+}
+.repo-view.resizable.right-hidden {
+  --rt-col: 0px;
+}
+.repo-view.sidebar-hidden > .sidebar,
+.repo-view.right-hidden > .right {
+  display: none;
+}
+/* Explicit cells, so the splitters can overlap the panel edges. */
+.repo-view.resizable > .toolbar {
+  grid-row: 1;
+  grid-column: 1 / -1;
+}
+.repo-view.resizable > .sidebar {
+  grid-row: 2;
+  grid-column: 1;
+}
+.repo-view.resizable > .center-column {
+  grid-row: 2;
+  grid-column: 2;
+}
+.repo-view.resizable > .right {
+  grid-row: 2;
+  grid-column: 3;
+}
+.splitter {
+  grid-row: 2;
+  z-index: 5;
+  width: 7px;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.splitter-sidebar {
+  grid-column: 1;
+  justify-self: end;
+  margin-right: -4px;
+}
+.splitter-right {
+  grid-column: 3;
+  justify-self: start;
+  margin-left: -4px;
+}
+.splitter::after {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 100%;
+  margin: 0 auto;
+  background: transparent;
+  transition: background 0.12s;
+}
+.splitter:hover::after,
+.splitter:focus-visible::after,
+body.resizing .splitter::after {
+  background: var(--accent);
+}
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* ---------- commit search ---------- */
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 260px;
+  height: 30px;
+  margin-right: 6px;
+  padding: 0 4px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--muted);
+}
+.search-bar:focus-within {
+  border-color: var(--focus-ring);
+}
+.search-icon {
+  flex: none;
+}
+.search-field {
+  flex: none;
+  max-width: 82px;
+  padding: 2px 0;
+  border: none;
+  border-right: 1px solid var(--border);
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+.search-field option {
+  background: var(--panel);
+  color: var(--text);
+}
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+.search-clear {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+.search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 40;
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.search-summary {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.search-results ul {
+  max-height: min(420px, 60vh);
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+}
+.search-results li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.search-results li.active {
+  background: var(--select);
+}
+.search-subject {
+  overflow: hidden;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.search-meta {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.search-older {
+  color: var(--warn);
+}
+
+/* Rows that don't match the active search fade out. */
+.graph.searching .graph-row:not(.match):not(.wip) .cell {
+  opacity: 0.38;
+}
+.graph.searching .graph-row.match .msg {
+  color: var(--text);
+  font-weight: 600;
+}
+.graph.searching .graph-row.match .cell.sha {
+  color: var(--accent);
+}
+
+/* ---------- drag a branch onto the checked-out branch ---------- */
+.ref[draggable='true'],
+.sb-item[draggable='true'] {
+  cursor: grab;
+}
+.ref.drop-over,
+.sb-item.drop-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: 1px;
+}
+.sb-item.drop-over {
+  background: var(--select);
+  outline-offset: -2px;
+}
+
+/* ---------- keyboard shortcuts help ---------- */
+.shortcuts-help h3 {
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.shortcuts-help h3:first-child {
+  margin-top: 0;
+}
+.shortcuts-help dl {
+  margin: 0;
+}
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 3px 0;
+}
+.shortcut-row dt {
+  display: flex;
+  flex: none;
+  gap: 3px;
+}
+.shortcut-row dd {
+  margin: 0;
+  color: var(--text-2);
+  text-align: right;
+}
+.shortcuts-help kbd {
+  min-width: 22px;
+  padding: 1px 6px;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11.5px;
+  text-align: center;
+}
+.shortcuts-help p {
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+
+/* ---------- center column: the center view, with the terminal under it ---------- */
+.center-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.center-column > .center {
+  flex: 1 1 0;
+}
+.terminal-dock {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 80%;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+}
+.terminal-dock[hidden] {
+  display: none;
+}
+
+/* ---------- toolbar additions ---------- */
+.tool.active {
+  background: var(--select);
+  color: var(--text);
+}
+.toolbar-worktree {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Narrow windows: icons only, so the toolbar keeps its buttons on one line. */
+@media (max-width: 1300px) {
+  .toolbar-actions .tool {
+    min-width: 40px;
+  }
+  .toolbar-actions .tool > span {
+    display: none;
+  }
+}
+/* Down to the 1000px minimum window: tighter buttons, a shrinking search field. */
+@media (max-width: 1180px) {
+  .repo-view > .toolbar {
+    gap: 8px;
+    padding: 0 8px;
+  }
+  .toolbar-repo {
+    flex: 0 1 150px;
+    min-width: 0;
+  }
+  .toolbar-actions .tool {
+    min-width: 34px;
+    padding: 0 5px;
+  }
+  .toolbar-actions .tool.caret {
+    min-width: 16px;
+  }
+  .toolbar-actions .tool-sep {
+    margin: 0 3px;
+  }
+  .toolbar-right {
+    flex: 0 1 auto;
+    gap: 2px;
+    min-width: 0;
+  }
+  .toolbar-right .search-bar {
+    flex: 0 1 220px;
+    width: auto;
+    min-width: 120px;
+  }
+  .toolbar-right .search-field {
+    max-width: 56px;
+  }
+  .toolbar-right .busy {
+    gap: 0;
+    font-size: 0;
+  }
+}
+
+/* ---------- compare hint in the graph header ---------- */
+.graph-header .graph-header-msg {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.graph-header .graph-hint {
+  padding: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  opacity: 0.8;
+}
+
+/* ---------- commit box: AI button next to the summary ---------- */
+.summary-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.summary-row > .summary-wrap {
+  flex: 1;
+  min-width: 0;
+}
+.compose-btn {
+  gap: 6px;
+}
+
+/* ---------- collapsed sidebar: icon rail ---------- */
+.sidebar.is-rail {
+  align-items: center;
+}
+.sb-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 0;
+  padding: 8px 0;
+  overflow-y: auto;
+}
+.sb-rail-btn {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 30px;
+}
+.sb-rail-count {
+  position: absolute;
+  right: -3px;
+  bottom: 0;
+  min-width: 15px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
+}
+.sb-rail-btn:hover .sb-rail-count {
+  background: var(--hover);
+  color: var(--text-2);
+}
+.sb-rail-sep {
+  flex: none;
+  width: 20px;
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border);
+}
+.sb-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.sb-body[hidden] {
+  display: none;
+}
+.sb-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 1px;
+  padding-right: 6px;
+}
+.sb-head .sb-filter {
+  flex: 1;
+  min-width: 0;
+  margin-right: 4px;
+}
+.sb-head-btn {
+  flex: none;
+}
+
+/* ---------- collapsed details panel: thin rail ---------- */
+.right-body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.right-body[hidden] {
+  display: none;
+}
+.details-rail {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.details-rail:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+.details-rail-label {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+}
+
+/* ---------- layout buttons in the toolbar ---------- */
+.layout-btns {
+  display: flex;
+  gap: 1px;
+  margin-right: 2px;
+  padding-right: 4px;
+  border-right: 1px solid var(--border);
+}
+.icon-btn.active {
+  color: var(--accent);
+}
+
+/* ---------- terminal maximized: it fills the center column ---------- */
+.center-column.terminal-maximized > .center {
+  display: none;
+}
+.center-column.terminal-maximized > .terminal-dock {
+  flex: 1 1 0;
+  max-height: none;
+  border-top: none;
+}
+.terminal-panel.maximized {
+  flex: 1;
+  height: 100%;
+}
+
+/* ---------- commit graph columns ---------- */
+/* Widths are CSS variables on .graph (set by CommitGraph, changed live while dragging). */
+.graph-header,
+.graph-row {
+  grid-template-columns: var(--graph-cols);
+}
+.graph-header-wrap {
+  position: relative;
+  flex: none;
+}
+.graph-header-clip {
+  overflow: hidden;
+}
+.graph-header {
+  min-width: calc(var(--graph-min-w) + 10px);
+}
+.graph-scroll {
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+}
+.graph-rows {
+  position: relative;
+  min-width: var(--graph-min-w);
+}
+.graph-th {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 100%;
+}
+.graph-header .graph-th-label {
+  flex: none;
+  max-width: 100%;
+  padding: 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graph-header .graph-header-msg {
+  align-items: center;
+  gap: 2px;
+}
+.graph-header .graph-header-msg .graph-th-label {
+  flex: 0 1 auto;
+}
+.graph-header .graph-header-msg .graph-hint {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding-right: 8px;
+  white-space: nowrap;
+}
+/* Border between two header cells: a faint line that turns into a handle on hover. */
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  bottom: 0;
+  z-index: 1;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.col-resizer::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 3px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--border);
+  transition:
+    background 0.12s,
+    top 0.12s,
+    bottom 0.12s;
+}
+.graph-header:hover .col-resizer::after {
+  background: var(--border-strong);
+}
+.col-resizer:hover::after,
+.col-resizer:focus-visible::after,
+.col-resizer:active::after {
+  top: 2px;
+  bottom: 2px;
+  background: var(--accent);
+}
+.col-resizer:focus-visible {
+  outline: none;
+}
+body.col-resizing,
+body.row-resizing {
+  user-select: none;
+}
+body.col-resizing {
+  cursor: col-resize;
+}
+body.row-resizing {
+  cursor: row-resize;
+}
+.graph-columns-btn {
+  position: absolute;
+  top: 2px;
+  right: 16px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  background: var(--bg-deep);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.graph-header-wrap:hover .graph-columns-btn,
+.graph-columns-btn:focus-visible,
+.graph-columns-btn[aria-expanded='true'] {
+  opacity: 1;
+}
+/* Rows of a hidden graph column keep their (hidden) cell; the grid skips it. */
+.graph-cell[hidden] {
+  display: none;
+}
+/* Lanes cut off by a narrow graph column fade out at its edge. */
+.graph.lanes-clipped .graph-cell {
+  mask-image: linear-gradient(to right, var(--text) calc(100% - 14px), transparent);
+}
+/* Branch labels use the width of their column (the "+N" button stays visible). */
+.cell.refs .ref {
+  max-width: none;
+}
+.cell.author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cell.author .author-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Column menu (header right-click): checkboxes stay open while toggling. */
+.col-menu {
+  min-width: 200px;
+}
+.col-menu-title {
+  padding: 4px 10px 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.col-menu .menu-item {
+  color: var(--text);
+}
+.col-menu .menu-item:focus-visible {
+  background: var(--select);
+  outline: none;
+}
+.col-menu .menu-item:disabled {
+  color: var(--muted);
+}
+.col-menu-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.col-menu-check {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+}
+
+/* ---------- working copy sections: collapsible, resizable, maximizable ---------- */
+.side-panel.working {
+  overflow: hidden;
+}
+.side-panel.working > section {
+  flex: none;
+}
+.side-panel.working > section.wc-list {
+  display: flex;
+  flex: var(--wc-grow, 1) 1 0px;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+}
+.side-panel.working > section.wc-list.collapsed,
+.side-panel.working.maximized > section.wc-list.collapsed {
+  flex: none;
+}
+.side-panel.working.maximized > section.wc-list:not(.collapsed) {
+  flex: 1 1 0px;
+}
+.wc-list > .section-title {
+  flex: none;
+  margin: 0;
+  padding: 8px 12px 6px;
+}
+.wc-list.collapsed > .section-title {
+  padding-bottom: 8px;
+}
+.wc-list > .file-list {
+  flex: 1;
+  min-height: 0;
+  padding: 0 12px 8px;
+  overflow: auto;
+}
+.section-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-left: -4px;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.section-toggle:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+.section-toggle > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.section-toggle > svg {
+  flex: none;
+}
+.section-actions .icon-btn.small.active {
+  color: var(--accent);
+}
+/* Splitters between the sections. */
+.wc-splitter {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  height: 7px;
+  margin: -4px 0 -3px;
+  cursor: row-resize;
+  touch-action: none;
+  outline: none;
+}
+.wc-splitter::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: transparent;
+  transition: background 0.12s;
+}
+.wc-splitter:hover::after,
+.wc-splitter:focus-visible::after,
+body.row-resizing .wc-splitter:active::after {
+  background: var(--accent);
+}
+/* The commit box: natural height, a height set with its splitter, or a single summary line. */
+.side-panel.working > .commit-box {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+.side-panel.working.lists-collapsed > .commit-box:not(.collapsed) {
+  flex: 1 1 auto;
+}
+.commit-box > textarea {
+  flex: 1 1 auto;
+  min-height: 44px;
+  resize: none;
+}
+.commit-box.collapsed {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.commit-box.collapsed .summary-row {
+  gap: 4px;
+}
+.section-toggle-icon {
+  flex: none;
+  margin-left: -6px;
+}
+.desc-indicator {
+  flex: none;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.desc-indicator:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.commit-inline {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+}
+
+/* ---------- long file lists: only the rows in view are drawn (FileList) ---------- */
+/* Two empty blocks stand for the rows above and below the drawn ones. */
+.file-list.windowed::before,
+.file-list.windowed::after {
+  content: '';
+  display: block;
+}
+.file-list.windowed::before {
+  height: var(--fl-before);
+}
+.file-list.windowed::after {
+  height: var(--fl-after);
+}
+
+/* ---------- repository names (branches, tags, remotes, paths) ---------- */
+/* Isolated from the text around them: bidi characters in a name cannot reorder its row. */
+.sb-name,
+.cmp-path,
+.ref-name,
+.file-name,
+.file-dir,
+.diff-path {
+  unicode-bidi: isolate;
+}

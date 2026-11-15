@@ -1,0 +1,98 @@
+appId: group.thelios.gitdesk
+productName: GitDesk
+copyright: Copyright (c) 2026 THELIOS CAPITAL
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!scripts/*'
+  - '!tests/*'
+  - '!test-results/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{CONTRIBUTING.md,SECURITY.md,vitest.config.ts,.github/*}'
+  - '!{.env,.env.*,.npmrc,.nvmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!{dist,docs}/**'
+  - '!*.tsbuildinfo'
+  # node-pty (built-in terminal): only the runtime files, not its C++ sources or debug symbols.
+  - '!**/node_modules/node-pty/{src,deps,third_party,scripts,typings}/**'
+  - '!**/node_modules/node-pty/{binding.gyp,README.md}'
+  - '!**/node_modules/node-pty/**/*.{pdb,map}'
+  - '!**/node_modules/node-pty/lib/**/*.test.js'
+  - '!**/node_modules/node-pty/build/Release/{obj,obj.target,.deps}/**'
+asarUnpack:
+  - resources/**
+  # Native modules, helper executables (winpty-agent.exe, OpenConsole.exe, spawn-helper)
+  # and the scripts node-pty forks cannot run from inside app.asar. Unpacked files keep the
+  # mode they have in node_modules: postinstall (scripts/fix-node-pty.mjs) makes the macOS
+  # spawn-helper executable, and the afterPack hook checks it in the packaged app.
+  - '**/node_modules/node-pty/**'
+# Licenses of the third-party code in the app, written by `npm run notices` (part of
+# `npm run build`): resources/THIRD_PARTY_NOTICES.txt, next to app.asar.
+extraResources:
+  - from: build/THIRD_PARTY_NOTICES.txt
+    to: THIRD_PARTY_NOTICES.txt
+afterPack: ./scripts/after-pack.mjs
+win:
+  executableName: GitDesk
+  # NSIS (the default target) is what auto-update uses; it writes latest.yml next to the installer.
+  target:
+    - nsis
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: false
+  # Apple silicon and Intel. The zip is what electron-updater reads (latest-mac.yml); it can
+  # only install updates once builds are signed with a Developer ID (see src/main/updater.ts).
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
+  artifactName: ${name}-${version}-mac-${arch}.${ext}
+dmg:
+  artifactName: ${name}-${version}-${arch}.${ext}
+linux:
+  # node-pty has no Linux prebuild: `npm ci` compiles build/Release/pty.node (node-gyp,
+  # needs python3, make and a C++ compiler).
+  target:
+    - AppImage
+    - deb
+  category: Development
+  # .deb needs a maintainer with an email: the owner account's GitHub no-reply address.
+  maintainer: THELIOS CAPITAL <257823100+TheliosGroupe@users.noreply.github.com>
+appImage:
+  artifactName: ${name}-${version}.${ext}
+# No rebuild against Electron's headers (here and no `electron-builder install-app-deps` in
+# postinstall): node-pty is the only native module and uses Node-API, whose binaries load in
+# any Node or Electron version. Its own install script uses the prebuilds it ships (Windows,
+# macOS) or compiles with node-gyp (Linux). A rebuild would compile it from source on every
+# OS, which on Windows needs Visual Studio with the Spectre-mitigated libraries.
+npmRebuild: false
+buildDependenciesFromSource: false
+# Switches compiled into the shipped Electron binary (https://www.electronjs.org/docs/latest/tutorial/fuses):
+# no NODE_OPTIONS or --inspect, only the app.asar (checked against the hash embedded at
+# build time on Windows and macOS), and no extra file:// rights (the UI is served on app://).
+electronFuses:
+  # Stays on: node-pty forks a Node helper (conpty_console_list_agent) when a Windows terminal
+  # closes; without it that fork would start a second GitDesk instead.
+  runAsNode: true
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+  # Unsigned macOS builds: flipping fuses breaks Electron's ad hoc signature; re-sign it ad hoc.
+  resetAdHocDarwinSignature: true
+# Auto-update feed: electron-updater reads releases (and their latest*.yml) from this repository.
+publish:
+  provider: github
+  owner: TheliosGroupe
+  repo: GitDesk

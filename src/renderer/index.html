@@ -1,0 +1,19 @@
+﻿<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>GitDesk</title>
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+         'self' is app://gitdesk (the bundle only) in packaged builds, the dev server in `npm run dev`.
+         No frames, plugins, <base> or form posts: injected markup cannot load or send anything. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

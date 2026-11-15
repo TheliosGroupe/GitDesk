@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      # Keep LF line endings on Windows too (Prettier enforces them).
+      - name: Configure git
+        run: |
+          git config --global core.autocrlf false
+          git config --global user.name "GitDesk CI"
+          git config --global user.email "ci@example.com"
+          git config --global init.defaultBranch main
+
+      # Actions are pinned to commit SHAs (Dependabot keeps them current); the job's
+      # token is not left in .git/config for the steps that run project code.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # postinstall downloads the Electron binary (install-electron) and makes node-pty's
+      # macOS spawn-helper executable (scripts/fix-node-pty.mjs). The one native module,
+      # node-pty (built-in terminal), uses Node-API, so it is not rebuilt for Electron: its
+      # install script takes the prebuilds it ships (Windows, macOS) or compiles it with
+      # node-gyp (Linux: python3, make and g++ are on the runner).
+      - run: npm ci
+
+      # The terminal's native module loads and starts a shell (fails early if the Linux build
+      # broke or the macOS spawn-helper is not executable).
+      - name: Check node-pty
+        run: >-
+          node -e "const win = process.platform === 'win32';
+          const p = require('node-pty').spawn(win ? 'cmd.exe' : 'sh', win ? ['/c', 'exit 3'] : ['-c', 'exit 3'], {});
+          p.onExit((e) => process.exit(e.exitCode === 3 ? 0 : 1));
+          setTimeout(() => process.exit(2), 15000)"
+
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+      # The licenses shipped with the app: fails if a bundled package is not installed.
+      - run: npm run notices
+
+      # Drives the built app with Playwright; needs a desktop session, so
+      # Windows only (Linux would need xvfb).
+      - name: End-to-end test
+        if: runner.os == 'Windows'
+        run: npm run test:e2e
+
+      - name: Upload e2e screenshots
+        if: failure() && runner.os == 'Windows'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: e2e-test-results
+          path: test-results/
+          if-no-files-found: ignore

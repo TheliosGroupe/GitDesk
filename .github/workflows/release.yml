@@ -1,0 +1,198 @@
+name: Release
+
+# Push a tag matching package.json's version (for example `v1.2.0`) to build
+# every platform and publish a GitHub release. Installed copies of GitDesk
+# pick it up through electron-updater (it reads latest*.yml from the release).
+#
+# Nothing is drafted, built or published unless formatting, typecheck, lint and the unit
+# tests pass on the tagged commit, on every OS (the verify job).
+#
+# Least privilege: the jobs that install dependencies and build (and so run third-party
+# install scripts) only get a read-only token. Only the last job, which runs no project
+# code, can write to the release. Actions are pinned to commit SHAs (Dependabot updates them).
+on:
+  push:
+    tags: ['v*']
+
+permissions: {}
+
+jobs:
+  # Seconds, before the much longer checks: a mistyped tag fails here.
+  version:
+    name: Check the tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Check the tag matches package.json
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
+
+  verify:
+    name: Verify (${{ matrix.os }})
+    needs: version
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      # Same setup as ci.yml: LF line endings, and an identity for the tests' git commits.
+      - name: Configure git
+        run: |
+          git config --global core.autocrlf false
+          git config --global user.name "GitDesk CI"
+          git config --global user.email "ci@example.com"
+          git config --global init.defaultBranch main
+
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  draft:
+    name: Create draft release
+    needs: [version, verify]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # One draft up front; the publish job attaches every platform's files to it. A re-run
+      # reuses the draft, but never touches a published release: its files and checksums
+      # never change (a fix is a new version).
+      # No checkout (no project code in a job that can write): gh is told the repository.
+      - name: Create draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          draft=$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --json isDraft -q .isDraft 2>/dev/null || true)
+          if [ "$draft" = false ]; then
+            echo "::error::$GITHUB_REF_NAME is already published; a published release never changes (tag a new version)."
+            exit 1
+          fi
+          if [ "$draft" != true ]; then
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft \
+              --title "GitDesk $GITHUB_REF_NAME" --generate-notes --verify-tag
+          fi
+
+  build:
+    name: Build (${{ matrix.os }})
+    needs: [verify, draft]
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: build:win
+          - os: macos-latest
+            script: build:mac
+          - os: ubuntu-latest
+            script: build:linux
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - name: Configure git
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # No token here: electron-builder only writes the installers and latest*.yml to dist/.
+      - name: Build
+        run: npm run ${{ matrix.script }} -- --publish never
+        env:
+          # No signing certificates are configured: build unsigned.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dist-${{ matrix.os }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.zip
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.blockmap
+            dist/latest*.yml
+          if-no-files-found: error
+          retention-days: 3
+
+  publish:
+    name: Publish release
+    needs: [verify, build]
+    runs-on: ubuntu-latest
+    # Add required reviewers to this environment (Settings → Environments) to approve each release.
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      # Again here, after the approval: only a draft gets files (a re-run of an old tag, or a
+      # release published by hand meanwhile, stops before anything is attested or uploaded).
+      - name: Check the release is still a draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          draft=$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --json isDraft -q .isDraft)
+          if [ "$draft" != true ]; then
+            echo "::error::$GITHUB_REF_NAME is not a draft release; a published release never changes (tag a new version)."
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+
+      - name: Checksums
+        working-directory: dist
+        run: |
+          sha256sum * > ../SHA256SUMS.txt
+          mv ../SHA256SUMS.txt .
+
+      # Build provenance: `gh attestation verify <file> --repo TheliosGroupe/GitDesk` checks a download.
+      - uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
+        with:
+          subject-path: dist/*
+
+      - name: Upload to the draft and publish it
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false

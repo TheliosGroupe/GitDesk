@@ -1,0 +1,365 @@
+/* AI features: commit button, explain / composer dialogs, settings, conflict suggestions. */
+
+.ai-commit-btn {
+  color: var(--accent);
+}
+.ai-commit-btn.busy {
+  color: var(--text-2);
+}
+.ai-spin-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.ai-stop {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+.ai-working {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  padding: 8px 0;
+}
+
+.ai-privacy-line {
+  color: var(--muted);
+  font-size: 11.5px;
+  margin-top: 10px;
+}
+
+.ai-warn {
+  color: var(--warn);
+  font-size: 12px;
+  align-self: center;
+}
+
+/* Explain */
+.ai-explain {
+  max-height: 60vh;
+  min-height: 120px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.markdown {
+  line-height: 1.5;
+  color: var(--text);
+  user-select: text;
+}
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.markdown h2 {
+  font-size: 15px;
+}
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown p {
+  margin: 6px 0;
+}
+.markdown ul,
+.markdown ol {
+  margin: 4px 0;
+  padding-left: 22px;
+}
+.markdown li {
+  margin: 2px 0;
+}
+.markdown code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--panel-2);
+  border-radius: 3px;
+  padding: 0 4px;
+}
+.markdown .md-code {
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  overflow: auto;
+  margin: 8px 0;
+}
+.markdown .md-code code {
+  background: none;
+  padding: 0;
+}
+.markdown blockquote {
+  margin: 6px 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--border-strong);
+  color: var(--text-2);
+}
+.markdown hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
+}
+.markdown .md-link {
+  color: var(--accent);
+}
+.markdown .md-href {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* Composer */
+.ai-composer {
+  max-height: 62vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+.ai-composer-intro {
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+.ai-group {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ai-group-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ai-group-title {
+  font-weight: 600;
+}
+.ai-group-count {
+  color: var(--muted);
+  font-size: 12px;
+}
+.ai-group-message {
+  font-family: var(--mono);
+  font-size: 12px;
+  resize: vertical;
+}
+.ai-group-empty {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: italic;
+}
+.ai-unit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: start;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+.ai-unit summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  min-width: 0;
+  padding: 2px 0;
+}
+.ai-unit summary:hover {
+  background: var(--row-hover);
+}
+.ai-unit-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 40px;
+}
+.ai-unit-header {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.ai-unit-stat {
+  display: flex;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.ai-unit-stat .add,
+.ai-unit-preview .add {
+  color: var(--ok);
+}
+.ai-unit-stat .del,
+.ai-unit-preview .del {
+  color: var(--bad);
+}
+.ai-unit-move {
+  width: auto;
+  padding: 2px 4px;
+  font-size: 12px;
+}
+.ai-unit-preview {
+  margin: 4px 0 2px;
+  padding: 6px 8px;
+  background: var(--bg-deep);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  overflow: auto;
+  max-height: 260px;
+  white-space: pre;
+}
+
+/* Settings */
+.ai-settings .help.error,
+.ai-test.error {
+  color: var(--bad);
+}
+.ai-key-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ok);
+  flex: 1;
+}
+.ai-test {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+}
+.ai-test.ok {
+  color: var(--ok);
+}
+pre.ai-test.error {
+  white-space: pre-wrap;
+  margin: 6px 0 0;
+  font-family: inherit;
+}
+.ai-privacy {
+  background: var(--info-bg);
+  border: 1px solid var(--info-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  margin-top: 4px;
+}
+
+/* Conflict view */
+.conflict-side.ai {
+  border-left: 3px solid var(--accent);
+  background: var(--info-bg);
+}
+.conflict-side.ai .conflict-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.conflict-ai-why {
+  font-family: inherit;
+  padding: 2px 10px 4px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.conflict-ai-text {
+  display: block;
+  width: calc(100% - 20px);
+  margin: 0 10px 8px;
+  font-size: 12px;
+  resize: vertical;
+  white-space: pre;
+}
+.conflict-ai-warn {
+  padding: 0 10px 6px;
+  color: var(--warn);
+  font-size: 12px;
+}
+/* An AI suggestion not picked yet: dashed until the user chooses it. */
+.conflict-side.ai.pending {
+  border-left-style: dashed;
+}
+/* A side the AI text keeps only in part. */
+.conflict-side.partial {
+  opacity: 0.75;
+}
+.conflict-side.partial .conflict-label {
+  color: var(--warn);
+}
+.conflict-ai-badge {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--warn-border);
+  border-radius: 4px;
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.conflict-ai-source {
+  color: var(--muted);
+}
+.conflict-ai-provenance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 0 10px 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.conflict-ai-provenance .warn {
+  color: var(--warn);
+}
+.conflict-ai-new {
+  margin: 0 10px 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--warn-border);
+  border-radius: 4px;
+  background: var(--warn-bg);
+  font-size: 12px;
+}
+.conflict-ai-new .code {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Files kept from the AI provider (they look like secrets). */
+.ai-withheld {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--warn-border);
+  border-radius: 6px;
+  background: var(--warn-bg);
+  color: var(--text-2);
+  font-size: 12px;
+}
+.ai-withheld svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--warn);
+}
+.ai-withheld .mono {
+  word-break: break-all;
+}
+
+/* Answer text past the Markdown cap, shown as is. */
+.markdown .md-rest {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+}
