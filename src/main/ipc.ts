@@ -300,7 +300,7 @@ const coreHandlers: Handlers = {
       typeof path === 'string' ? findStoredPath(loadState().repos, path) : undefined
     if (registered) {
       // Its terminals (and agents) would otherwise keep running in a folder GitDesk forgot.
-      killTerminalsIn(registered)
+      void killTerminalsIn(registered)
       unwatchRepo(registered)
       forget(registered)
       repo.forgetRepo(registered)

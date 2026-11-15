@@ -163,12 +163,27 @@ function forgetFolder(path: string): AppState {
   return removeRepo(registered)
 }
 
-/** Lets the terminals of a folder exit before the folder is deleted (Windows locks it). */
+/**
+ * Stops watching a folder and lets its terminals end before it is deleted (on Windows a
+ * running process, or an open watch, keeps it from being deleted).
+ */
 async function releaseFolder(path: string): Promise<void> {
-  killTerminalsIn(path)
   const registered = findStoredPath(loadState().repos, path)
   if (registered) unwatchRepo(registered)
-  await new Promise((r) => setTimeout(r, process.platform === 'win32' ? 400 : 50))
+  await killTerminalsIn(path)
+  // The watch closes in the watcher's thread; a process's handles go just after it ends.
+  await new Promise((r) => setTimeout(r, process.platform === 'win32' ? 100 : 0))
+}
+
+/** Whether git still lists `path` as a worktree (matched as requireWorktree does). */
+async function isListed(cwd: string, path: string): Promise<boolean> {
+  const list = parseWorktreePorcelain(await git(cwd, ['worktree', 'list', '--porcelain']))
+  return (
+    findSamePath(
+      list.map((w) => resolve(w.path)),
+      path
+    ) !== undefined
+  )
 }
 
 /**
@@ -284,6 +299,22 @@ export async function removeWorktree(
     try {
       await git(cwd, ['worktree', 'remove', ...flags, '--', wt.path])
     } catch (e) {
+      // git forgets the worktree even when part of its folder could not be deleted (on
+      // Windows, a file held open for a moment: a process ending, a virus scanner). It had
+      // passed its own checks then (a refused removal leaves the worktree listed): finish
+      // deleting the folder. Its links to other folders were removed above, and rm does
+      // not follow links.
+      if (existsSync(wt.path) && !(await isListed(cwd, wt.path).catch(() => true))) {
+        await fs
+          .rm(wt.path, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })
+          .catch(() => {
+            throw new Error(
+              `The worktree is removed, but a program still uses its folder: ${wt.path}. ` +
+                'Close it, then delete the folder.'
+            )
+          })
+        return
+      }
       // Still there (a file held open, ...): give it its links back.
       if (existsSync(wt.path)) await links.restore()
       throw e

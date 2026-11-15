@@ -19,6 +19,9 @@ interface Term {
   /** pathKey of info.cwd, worked out once (lookups by folder need no file system call each). */
   cwdKey: string
   proc: IPty | null
+  /** Settles once the process has exited (at once when there is none). */
+  ended: Promise<void>
+  markEnded: () => void
   buffer: string
   /** Characters produced so far (TerminalDataEvent.seq). */
   seq: number
@@ -75,6 +78,7 @@ export function notice(id: string, text: string): void {
 }
 
 function exited(t: Term, exitCode: number): void {
+  t.markEnded()
   if (!t.info.running) return
   t.info.running = false
   t.info.exitCode = exitCode
@@ -125,7 +129,19 @@ export async function spawnTerminal(o: SpawnOptions): Promise<TerminalInfo> {
     createdAt: Date.now()
   }
   const cwdKey = pathKey(o.cwd)
-  const t: Term = { info, cwdKey, proc: null, buffer: '', seq: 0, pending: '', timer: null }
+  let markEnded = (): void => {}
+  const ended = new Promise<void>((resolve) => (markEnded = resolve))
+  const t: Term = {
+    info,
+    cwdKey,
+    proc: null,
+    ended,
+    markEnded,
+    buffer: '',
+    seq: 0,
+    pending: '',
+    timer: null
+  }
   terms.set(info.id, t)
   for (const m of o.messages ?? []) notice(info.id, m)
 
@@ -206,10 +222,29 @@ function inFolder(cwd: string): (t: Term) => boolean {
   return (t) => t.info.cwd === cwd || (key !== null && t.cwdKey === key)
 }
 
-/** Ends the terminals running in a folder (before its worktree is removed). */
-export function killTerminalsIn(cwd: string): void {
+/** Longest wait for the terminals of a folder to end (killTerminalsIn). */
+const END_WAIT_MS = 5000
+
+/**
+ * Ends the terminals running in a folder (before its worktree is removed) and waits until
+ * their processes have exited, END_WAIT_MS at most: on Windows a running process keeps its
+ * working folder from being deleted, and a shell can take a while to end on a busy machine.
+ */
+export async function killTerminalsIn(cwd: string): Promise<void> {
   const inCwd = inFolder(cwd)
-  for (const t of [...terms.values()]) if (inCwd(t)) killTerminal(t.info.id)
+  const ending: Promise<void>[] = []
+  for (const t of [...terms.values()]) {
+    if (!inCwd(t)) continue
+    ending.push(t.ended)
+    killTerminal(t.info.id)
+  }
+  if (!ending.length) return
+  let timer: NodeJS.Timeout | undefined
+  await Promise.race([
+    Promise.all(ending),
+    new Promise<void>((resolve) => (timer = setTimeout(resolve, END_WAIT_MS)))
+  ])
+  clearTimeout(timer)
 }
 
 export function killSessionTerminals(sessionId: string): void {
