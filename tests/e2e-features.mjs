@@ -983,10 +983,15 @@ try {
   await p3.keyboard.press('Escape')
   await p3.locator('.diff-view').waitFor({ state: 'detached' })
   await unstaged3.getByRole('button', { name: 'Stage all' }).click()
+  // git writes 5,000 new objects: slow where a virus scanner checks every new file (CI
+  // runners). Polled with `diff --cached`, which reads only the index (written at the end):
+  // a status would walk the 5,000 files each time and slow git down meanwhile.
   // --no-optional-locks: polling must not take index.lock while GitDesk is staging.
   const stagedAll = () =>
-    !/^(\?\?| M)/m.test(scaleGit('--no-optional-locks', 'status', '--porcelain'))
-  await until(stagedAll, 'every file staged', 30000).catch(async (e) => {
+    scaleGit('--no-optional-locks', 'diff', '--cached', '--name-only').split('\n').filter(Boolean)
+      .length ===
+    MANY + 1
+  await until(stagedAll, 'every file staged', 120000).catch(async (e) => {
     const left = scaleGit('--no-optional-locks', 'status', '--porcelain')
       .split('\n')
       .filter((l) => !/^[AM]/.test(l))
