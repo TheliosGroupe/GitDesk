@@ -7,7 +7,15 @@
 
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
 import { createServer } from 'node:http'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
@@ -128,7 +136,9 @@ await new Promise((r) => server.listen(0, '127.0.0.1', r))
 const fake = `http://127.0.0.1:${server.address().port}`
 
 // --- fixture repositories ----------------------------------------------------------------
-const work = mkdtempSync(join(tmpdir(), 'gitdesk-e2e-features-'))
+// In the form GitDesk stores paths (long names, links followed): on a CI runner the temp
+// folder is named with an 8.3 short name (C:\Users\RUNNER~1\…).
+const work = realpathSync.native(mkdtempSync(join(tmpdir(), 'gitdesk-e2e-features-')))
 const repo = join(work, 'sample')
 const hosted = join(work, 'app')
 const userData = join(work, 'userdata')
