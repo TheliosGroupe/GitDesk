@@ -99,7 +99,8 @@ The fixtures in these tests stay harmless: a setting or hook that "runs a progra
    - **verify**, on Windows, macOS and Linux: runs the Prettier check, typecheck, lint and the unit tests on the tagged commit. Nothing is drafted, built or published if it fails;
    - **draft**: creates a draft GitHub release with generated notes (a re-run reuses the draft, and stops if that version is already published);
    - **build**: builds Windows, macOS and Linux, unsigned and without any write access;
-   - **publish**, in the protected `release` environment: waits for a required reviewer's approval, checks the release is still a draft, adds `SHA256SUMS.txt` and build-provenance attestations, uploads every file to the draft and publishes it.
+   - **publish**, in the protected `release` environment: waits for a required reviewer's approval, checks the release is still a draft, adds `SHA256SUMS.txt` and build-provenance attestations, uploads every file to the draft and publishes it;
+   - **winget**, once the release is published: submits the new version to [winget](https://github.com/microsoft/winget-pkgs), as a pull request that winget's moderators merge. It runs Microsoft's `wingetcreate` with the `WINGET_TOKEN` secret of the `winget` environment and no other access. If it fails (no token, or winget does not have GitDesk yet), the release is unaffected: submit that version by hand.
 5. While **publish** waits for approval, open the draft on the Releases page, edit its notes (what changed, known issues), then approve the deployment.
 6. Install the published version on a clean machine (or ask a colleague) before announcing it. Installed copies on Windows and Linux find it at their next check (at start, then every 6 hours) and install it when the user clicks _Restart to install_; macOS users are pointed to the download page.
 
@@ -108,6 +109,7 @@ A release that failed before **publish** can be retried: delete its draft on the
 ### One-time repository setup
 
 - **Settings → Environments → `release`**: add required reviewers, so every release needs an approval.
+- **Settings → Environments → `winget`** (deployments from `v*` tags only, no reviewers): add a `WINGET_TOKEN` secret, a classic personal access token with the `public_repo` scope. Its account opens the winget pull requests from its fork of winget-pkgs, and accepts Microsoft's contributor agreement on its first one. Such a token can push to every public repository of its account, this one included if that account is an admin here: prefer a separate account with no access to this repository, and give the token an expiry date.
 - **Settings → Rules → Rulesets**: a tag ruleset on `v*` that restricts who can create, update or delete those tags, and a branch ruleset on `main` that blocks force pushes and requires the three CI checks to pass.
 - **Settings → Code security → Private vulnerability reporting**: enable it, so the [security policy](SECURITY.md) works.
 - **Settings → Actions → General**: keep the default `GITHUB_TOKEN` permission read-only (the workflows ask for what they need).

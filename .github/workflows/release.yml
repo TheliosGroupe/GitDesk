@@ -8,8 +8,9 @@ name: Release
 # tests pass on the tagged commit, on every OS (the verify job).
 #
 # Least privilege: the jobs that install dependencies and build (and so run third-party
-# install scripts) only get a read-only token. Only the last job, which runs no project
-# code, can write to the release. Actions are pinned to commit SHAs (Dependabot updates them).
+# install scripts) only get a read-only token. Only the publish job, which runs no project
+# code, can write to the release; the winget job after it gets no GITHUB_TOKEN permission at
+# all. Actions are pinned to commit SHAs (Dependabot updates them).
 on:
   push:
     tags: ['v*']
@@ -196,3 +197,48 @@ jobs:
         run: |
           gh release upload "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --clobber
           gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false
+
+  # Submits the published version to winget (Windows Package Manager): a pull request to
+  # microsoft/winget-pkgs, from the token owner's fork, that winget's moderators then merge.
+  # Microsoft's wingetcreate does it, pinned by hash (change both when moving to a newer one).
+  # The token comes from the `winget` environment (v* tags only, no reviewers: publish was
+  # approved already). A failure here (no token, winget not reachable, GitDesk not in winget
+  # yet) leaves the release as it is: submit that version by hand.
+  winget:
+    name: Submit to winget
+    needs: publish
+    runs-on: windows-latest
+    environment: winget
+    permissions: {}
+    continue-on-error: true
+    timeout-minutes: 20
+    steps:
+      - name: Download wingetcreate
+        shell: pwsh
+        run: |
+          $url = 'https://github.com/microsoft/winget-create/releases/download/v1.28.1.0/wingetcreate.exe'
+          $sha256 = '63d980ba79e97042395bd6eb5992c2db9e01e9e7a8a22958a95c288f27310413'
+          Invoke-WebRequest $url -OutFile wingetcreate.exe
+          if ((Get-FileHash wingetcreate.exe -Algorithm SHA256).Hash -ne $sha256) {
+            throw 'wingetcreate.exe does not match its expected SHA-256'
+          }
+
+      # wingetcreate reads the token from this variable: it never appears on a command line.
+      - name: Submit the new version
+        shell: pwsh
+        env:
+          WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          if (-not $env:WINGET_CREATE_GITHUB_TOKEN) {
+            Write-Output '::warning::No WINGET_TOKEN secret in the winget environment: submit this version to winget by hand.'
+            exit 0
+          }
+          $tag = $env:GITHUB_REF_NAME
+          $version = $tag.Substring(1)
+          $releases = "https://github.com/$env:GITHUB_REPOSITORY/releases"
+          .\wingetcreate.exe update Thelios.GitDesk `
+            --version $version `
+            --urls "$releases/download/$tag/gitdesk-$version-setup.exe" `
+            --release-notes-url "$releases/tag/$tag" `
+            --release-date (Get-Date -AsUTC -Format 'yyyy-MM-dd') `
+            --submit
