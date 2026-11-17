@@ -1033,7 +1033,13 @@ try {
   await third.shot('f21-huge-conflict')
   await conflictView.getByRole('button', { name: 'Take all incoming' }).click()
   await third.confirmModal('Take it')
-  await until(() => !/^UU/m.test(hugeGit('status', '--porcelain')), 'conflict resolved', 15000)
+  // --no-optional-locks: a plain status could hold index.lock just when GitDesk runs its
+  // checkout or add, which would then fail and leave the conflict in place.
+  await until(
+    () => !/^UU/m.test(hugeGit('--no-optional-locks', 'status', '--porcelain')),
+    'conflict resolved',
+    30000
+  )
   assert.equal(readFileSync(join(huge, 'data.txt'), 'utf8'), hugeText('t'))
   step('a conflicted file too large to show offers whole sides only, and taking one works')
 
