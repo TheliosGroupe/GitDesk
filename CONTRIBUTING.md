@@ -92,7 +92,7 @@ The fixtures in these tests stay harmless: a setting or hook that "runs a progra
 ## Releases (maintainers)
 
 1. Bump the version without tagging: `npm version 1.2.3 --no-git-tag-version` (updates `package.json` and `package-lock.json`). Commit it (`Release 1.2.3`) to `main`, directly or through a pull request, and wait until CI is green for that commit.
-2. Check that the README and [SECURITY.md](SECURITY.md) describe this version (new settings, changed requirements, new network calls).
+2. Check that the README and [SECURITY.md](SECURITY.md) describe this version (new settings, changed requirements, new network calls). If the interface changed visibly, record the README's demo again ([scripts/demo](scripts/demo/README.md)).
 3. Tag that commit and push the tag: `git tag v1.2.3 && git push origin v1.2.3`.
 4. The [_Release_ workflow](.github/workflows/release.yml) then runs:
    - **version**: checks that the tag matches the version in `package.json` (fails in seconds on a mistyped tag);
