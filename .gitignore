@@ -15,6 +15,9 @@ build/THIRD_PARTY_NOTICES.txt
 .env.*
 *.pem
 *.key
+# Code-signing certificates (electron-builder CSC_LINK, WIN_CSC_LINK).
+*.p12
+*.pfx
 
 # OS and editor files.
 .DS_Store
