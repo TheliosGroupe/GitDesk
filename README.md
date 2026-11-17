@@ -1,20 +1,52 @@
-# GitDesk
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/banner-dark.webp">
+    <img alt="GitDesk, the free, open-source Git client" src="docs/banner-light.webp" width="640">
+  </picture>
+</p>
 
-A free, open-source desktop Git client.
+<p align="center">
+  <a href="https://github.com/TheliosGroupe/GitDesk/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/TheliosGroupe/GitDesk?label=release&color=3d8bfd"></a>
+  <a href="https://github.com/TheliosGroupe/GitDesk/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/TheliosGroupe/GitDesk/ci.yml?branch=main&label=CI&logo=github"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2ea44f"></a>
+  <a href="#which-file-do-i-download"><img alt="Windows, macOS and Linux" src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-8957e5"></a>
+  <a href="#what-gitdesk-connects-to"><img alt="No telemetry" src="https://img.shields.io/badge/telemetry-none-1aa68c"></a>
+</p>
 
-A dashboard of all your projects, a commit graph, diffs with line-by-line staging, conflict resolution, interactive rebase, undo, a built-in terminal, worktrees and coding-agent sessions, AI help with your own API key, pull requests and issues for GitHub, GitLab, Bitbucket and Azure DevOps, and an activity dashboard. For Windows, macOS and Linux, on top of the `git` you already have installed.
+<p align="center">
+  <a href="https://github.com/TheliosGroupe/GitDesk/releases/latest"><b>Download GitDesk: free, no account needed →</b></a>
+</p>
 
-[![CI](https://github.com/TheliosGroupe/GitDesk/actions/workflows/ci.yml/badge.svg)](https://github.com/TheliosGroupe/GitDesk/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/TheliosGroupe/GitDesk)](https://github.com/TheliosGroupe/GitDesk/releases/latest)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<p align="center">
+  <b>Every repository, branch and coding agent in one window.</b><br>
+  A desktop Git client for Windows, macOS and Linux, on top of the <code>git</code> you already have.
+</p>
 
-![Repository view](docs/screenshots/repo-dark.png)
+- **All your projects at a glance.** One card per repository with its branch, uncommitted work and commits to push or pull. **Sync** fetches them all, **Scan a folder** adds them all, and the **Activity** page shows who works on what, and when.
+- **Git you can see.** A commit graph of every branch, diffs with line-by-line staging, conflict resolution, interactive rebase, drag-a-branch merges, and **Undo** for commits, checkouts, merges and rebases.
+- **Coding agents, side by side.** Give a task to Claude Code, Codex, Gemini CLI, Copilot CLI or OpenCode: each one works in its own worktree and branch, in a terminal you can watch, and you merge what you keep.
+- **AI with your own key, if you want it.** Commit messages, pull request descriptions, commit explanations, conflict suggestions and commit splitting, with Anthropic, OpenAI or a local model. Files that look like secrets are never sent.
+- **Pull requests and issues where you work.** GitHub, GitLab, Bitbucket and Azure DevOps, plus Jira and Linear issues, gathered in the **Launchpad**.
+- **Safe with repositories you did not create.** Their hooks and risky settings stay off until you trust them, and hidden _Trojan Source_ characters show as markers.
+- **Free, open source and private.** MIT-licensed, no account needed, no telemetry.
 
-| Projects                                                   | Diff                                         | Activity                                                  |
-| ---------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------- |
-| ![Projects dashboard](docs/screenshots/dashboard-dark.png) | ![Diff view](docs/screenshots/diff-dark.png) | ![Activity dashboard](docs/screenshots/activity-dark.png) |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/repo-dark.png">
+  <img alt="The repository view: commit graph, branches and commit details" src="docs/screenshots/repo-light.png">
+</picture>
 
-Light theme too: ![Light theme](docs/screenshots/repo-light.png)
+<table>
+  <tr>
+    <th>Projects</th>
+    <th>Diff</th>
+    <th>Activity</th>
+  </tr>
+  <tr>
+    <td><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-dark.png"><img alt="Projects dashboard" src="docs/screenshots/dashboard-light.png"></picture></td>
+    <td><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/diff-dark.png"><img alt="Diff view" src="docs/screenshots/diff-light.png"></picture></td>
+    <td><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/activity-dark.png"><img alt="Activity dashboard" src="docs/screenshots/activity-light.png"></picture></td>
+  </tr>
+</table>
 
 ## Quick start
 
