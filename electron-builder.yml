@@ -46,8 +46,11 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  # Signed with the hardened runtime (the default) when a Developer ID certificate is given
+  # (CSC_LINK), then notarized when Apple's API key is too (APPLE_API_KEY, APPLE_API_KEY_ID,
+  # APPLE_API_ISSUER): the release workflow's build-mac job. Without them, unsigned.
   entitlementsInherit: build/entitlements.mac.plist
-  notarize: false
+  notarize: true
   # Apple silicon and Intel. The zip is what electron-updater reads (latest-mac.yml); it can
   # only install updates once builds are signed with a Developer ID (see src/main/updater.ts).
   target:

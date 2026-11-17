@@ -8,9 +8,10 @@ name: Release
 # tests pass on the tagged commit, on every OS (the verify job).
 #
 # Least privilege: the jobs that install dependencies and build (and so run third-party
-# install scripts) only get a read-only token. Only the publish job, which runs no project
-# code, can write to the release; the winget job after it gets no GITHUB_TOKEN permission at
-# all. Actions are pinned to commit SHAs (Dependabot updates them).
+# install scripts) only get a read-only token, and the macOS signing secrets only reach the
+# step that packages, signs and notarizes. Only the publish job, which runs no project code,
+# can write to the release; the winget job after it gets no GITHUB_TOKEN permission at all.
+# Actions are pinned to commit SHAs (Dependabot updates them).
 on:
   push:
     tags: ['v*']
@@ -97,6 +98,7 @@ jobs:
               --title "GitDesk $GITHUB_REF_NAME" --generate-notes --verify-tag
           fi
 
+  # Windows and Linux; macOS is the build-mac job below (it signs).
   build:
     name: Build (${{ matrix.os }})
     needs: [verify, draft]
@@ -108,8 +110,6 @@ jobs:
         include:
           - os: windows-latest
             script: build:win
-          - os: macos-latest
-            script: build:mac
           - os: ubuntu-latest
             script: build:linux
     runs-on: ${{ matrix.os }}
@@ -133,7 +133,7 @@ jobs:
       - name: Build
         run: npm run ${{ matrix.script }} -- --publish never
         env:
-          # No signing certificates are configured: build unsigned.
+          # No Windows code-signing certificate yet: build unsigned.
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -141,8 +141,6 @@ jobs:
           name: dist-${{ matrix.os }}
           path: |
             dist/*.exe
-            dist/*.dmg
-            dist/*.zip
             dist/*.AppImage
             dist/*.deb
             dist/*.blockmap
@@ -150,9 +148,76 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
+  # Signed with the Developer ID certificate and notarized by Apple when the `mac-signing`
+  # environment (v* tags only, no reviewers) holds the secrets; unsigned otherwise. They only
+  # reach the packaging step: not `npm ci`, nor the app's own build.
+  build-mac:
+    name: Build (macos-latest)
+    needs: [verify, draft]
+    runs-on: macos-latest
+    environment: mac-signing
+    permissions:
+      contents: read
+    timeout-minutes: 60
+    steps:
+      - name: Configure git
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build the app
+        run: npm run build
+
+      # electron-builder imports the certificate into a temporary keychain, signs with the
+      # hardened runtime, then waits for Apple's notarization and staples it to the app.
+      # A signed app that is not notarized is still blocked by macOS: no half-way build.
+      - name: Package, sign and notarize
+        env:
+          CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          if [ -z "$CSC_LINK" ]; then
+            echo "::warning::No MAC_CERTIFICATE in the mac-signing environment: the macOS build is unsigned."
+            unset CSC_LINK CSC_KEY_PASSWORD APPLE_API_KEY_ID APPLE_API_ISSUER
+            CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --publish never
+            exit 0
+          fi
+          if [ -z "$APPLE_API_KEY_P8" ] || [ -z "$APPLE_API_KEY_ID" ] || [ -z "$APPLE_API_ISSUER" ]; then
+            echo "::error::MAC_CERTIFICATE is set, but not all of APPLE_API_KEY, APPLE_API_KEY_ID and APPLE_API_ISSUER: macOS would block a signed app that is not notarized."
+            exit 1
+          fi
+          # electron-builder wants the path of Apple's .p8 key file.
+          key="$RUNNER_TEMP/AuthKey.p8"
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$APPLE_API_KEY_P8" > "$key"
+          APPLE_API_KEY="$key" npx electron-builder --mac --publish never
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dist-macos-latest
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.blockmap
+            dist/latest*.yml
+          if-no-files-found: error
+          retention-days: 3
+
   publish:
     name: Publish release
-    needs: [verify, build]
+    needs: [verify, build, build-mac]
     runs-on: ubuntu-latest
     # Add required reviewers to this environment (Settings → Environments) to approve each release.
     environment: release
