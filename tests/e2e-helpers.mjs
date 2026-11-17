@@ -40,6 +40,16 @@ export const until = async (check, what, timeout = 8000) => {
 }
 
 /**
+ * Fills a text field and waits until it holds `value`, typing it again if it does not: on CI,
+ * a fill once left a color's hex field empty, so the change it should have made never came.
+ */
+export const fillField = (field, value) =>
+  until(async () => {
+    if ((await field.inputValue()) !== value) await field.fill(value)
+    return (await field.inputValue()) === value
+  }, `"${value}" in the field`)
+
+/**
  * Starts the app with GITDESK_USER_DATA = `userData` (plus `env`). Any uncaught renderer
  * error, or console.error, lands in `pageErrors` (the tests fail on them at the end).
  */

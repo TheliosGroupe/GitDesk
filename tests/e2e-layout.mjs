@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { gitIn, launch, lines, results, step, until } from './e2e-helpers.mjs'
+import { fillField, gitIn, launch, lines, results, step, until } from './e2e-helpers.mjs'
 
 const work = mkdtempSync(join(tmpdir(), 'gitdesk-e2e-layout-'))
 const repo = join(work, 'layout')
@@ -356,7 +356,7 @@ try {
   await openAppearance()
   await settingsModal.getByRole('button', { name: 'Add rule' }).click()
   await settingsModal.getByLabel('Rule 1 branch pattern').fill('feature/*')
-  await settingsModal.getByLabel('Rule 1 color, hex').fill('#e0115f')
+  await fillField(settingsModal.getByLabel('Rule 1 color, hex'), '#e0115f')
   await settingsModal.getByRole('button', { name: 'Add common rules' }).click()
   assert.equal(await settingsModal.locator('.branch-rule').count(), 7) // feature/* is there
   // Reorder with the buttons: "main" (rule 2) goes first, then back.
@@ -366,10 +366,10 @@ try {
   assert.equal(await settingsModal.getByLabel('Rule 1 branch pattern').inputValue(), 'feature/*')
   // A faint lane color gets a contrast warning.
   const lane2 = settingsModal.getByLabel('Lane 2 color, light theme, hex')
-  await lane2.fill('#fafafa')
+  await fillField(lane2, '#fafafa')
   await settingsModal.getByText(/Lane 2 has less than 3:1 contrast/).waitFor()
-  await lane2.fill('#c4501a')
-  await settingsModal.getByLabel('Lane 1 color, light theme, hex').fill('#123456')
+  await fillField(lane2, '#c4501a')
+  await fillField(settingsModal.getByLabel('Lane 1 color, light theme, hex'), '#123456')
   await settingsModal.locator('.branch-rules').scrollIntoViewIfNeeded()
   await shot('l10-branch-colors-settings-light')
   await closeSettings()
