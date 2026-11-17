@@ -22,6 +22,10 @@
   A desktop Git client for Windows, macOS and Linux, on top of the <code>git</code> you already have.
 </p>
 
+<p align="center">
+  <img alt="GitDesk in action: Sync on the Projects page, two Claude Code agents working on their own branches, a line staged and committed, a branch merged by dragging it and undone, then the agents' branches merged" src="docs/demo.webp">
+</p>
+
 - **All your projects at a glance.** One card per repository with its branch, uncommitted work and commits to push or pull. **Sync** fetches them all, **Scan a folder** adds them all, and the **Activity** page shows who works on what, and when.
 - **Git you can see.** A commit graph of every branch, diffs with line-by-line staging, conflict resolution, interactive rebase, drag-a-branch merges, and **Undo** for commits, checkouts, merges and rebases.
 - **Coding agents, side by side.** Give a task to Claude Code, Codex, Gemini CLI, Copilot CLI or OpenCode: each one works in its own worktree and branch, in a terminal you can watch, and you merge what you keep.
